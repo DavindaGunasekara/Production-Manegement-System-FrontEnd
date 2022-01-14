@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useHistory } from 'react';
 import { useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 // material-ui
 import { makeStyles } from '@material-ui/styles';
@@ -96,10 +96,44 @@ const FirebaseLogin = (props, { ...others }) => {
         event.preventDefault();
     };
 
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const navigate = useNavigate();
+    const authenticateUser = () => {
+        // eslint-disable-next-line
+        const data = { email: email, password: password };
+
+        fetch('http://localhost:4000/user/login', {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                console.log('Success:', data.token);
+                if (data.token) {
+                    localStorage.setItem('isLoggedIn', data.auth);
+                    localStorage.setItem('authToken', data.token);
+
+                    // dispatch({ type: 'auth', authData: data });
+                    // e.preventDefault();
+                    navigate('/');
+                } else {
+                    alert('Invalid Username or Password');
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    };
+
     return (
         <>
             <Grid container direction="column" justifyContent="center" spacing={2}>
-                <Grid item xs={12}>
+                {/* <Grid item xs={12}>
                     <AnimateButton>
                         <Button
                             disableElevation
@@ -112,7 +146,7 @@ const FirebaseLogin = (props, { ...others }) => {
                             <img src={Google} alt="google" width="20px" className={classes.loginIcon} /> Sign in with Google
                         </Button>
                     </AnimateButton>
-                </Grid>
+                </Grid> */}
                 <Grid item xs={12}>
                     <Box
                         sx={{
@@ -121,7 +155,7 @@ const FirebaseLogin = (props, { ...others }) => {
                         }}
                     >
                         <Divider className={classes.signDivider} orientation="horizontal" />
-                        <AnimateButton>
+                        {/* <AnimateButton>
                             <Button
                                 variant="outlined"
                                 className={classes.signText}
@@ -131,7 +165,7 @@ const FirebaseLogin = (props, { ...others }) => {
                             >
                                 OR
                             </Button>
-                        </AnimateButton>
+                        </AnimateButton> */}
                         <Divider className={classes.signDivider} orientation="horizontal" />
                     </Box>
                 </Grid>
@@ -148,7 +182,7 @@ const FirebaseLogin = (props, { ...others }) => {
 
             <Formik
                 initialValues={{
-                    email: 'info@codedthemes.com',
+                    email: 'info@rathnacinnamon.com',
                     password: '123456',
                     submit: null
                 }}
@@ -173,16 +207,27 @@ const FirebaseLogin = (props, { ...others }) => {
                 }}
             >
                 {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
-                    <form noValidate onSubmit={handleSubmit} {...others}>
+                    <form
+                        noValidate
+                        onSubmit={(e) => {
+                            authenticateUser();
+                            e.preventDefault();
+                        }}
+                        {...others}
+                    >
                         <FormControl fullWidth error={Boolean(touched.email && errors.email)} className={classes.loginInput}>
-                            <InputLabel htmlFor="outlined-adornment-email-login">Email Address / Username</InputLabel>
+                            <InputLabel htmlFor="outlined-adornment-email-login">Email Address</InputLabel>
                             <OutlinedInput
                                 id="outlined-adornment-email-login"
                                 type="email"
                                 value={values.email}
                                 name="email"
                                 onBlur={handleBlur}
-                                onChange={handleChange}
+                                // onChange={handleChange}
+                                onChange={(e) => {
+                                    handleChange(e);
+                                    setEmail(e.target.value);
+                                }}
                                 label="Email Address / Username"
                                 inputProps={{
                                     classes: {
@@ -206,7 +251,11 @@ const FirebaseLogin = (props, { ...others }) => {
                                 value={values.password}
                                 name="password"
                                 onBlur={handleBlur}
-                                onChange={handleChange}
+                                // onChange={handleChange}
+                                onChange={(e) => {
+                                    handleChange(e);
+                                    setPassword(e.target.value);
+                                }}
                                 endAdornment={
                                     <InputAdornment position="end">
                                         <IconButton
@@ -249,7 +298,7 @@ const FirebaseLogin = (props, { ...others }) => {
                                 variant="subtitle1"
                                 component={Link}
                                 to="/pages/forgot-password/forgot-password3"
-                                color="secondary"
+                                color="primary"
                                 sx={{ textDecoration: 'none' }}
                             >
                                 Forgot Password?
@@ -279,6 +328,7 @@ const FirebaseLogin = (props, { ...others }) => {
                                     type="submit"
                                     variant="contained"
                                     color="secondary"
+                                    onClick={(e) => handleSubmit(e)}
                                 >
                                     Sign in
                                 </Button>

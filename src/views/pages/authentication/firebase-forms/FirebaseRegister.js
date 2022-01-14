@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState, useHistory } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
 // material-ui
@@ -83,7 +83,13 @@ const FirebaseRegister = ({ ...others }) => {
     const matchDownSM = useMediaQuery((theme) => theme.breakpoints.down('sm'));
     const customization = useSelector((state) => state.customization);
     const [showPassword, setShowPassword] = React.useState(false);
-    const [checked, setChecked] = React.useState(true);
+    const [username, setUsername] = useState('');
+    const [userType, setUserType] = useState('');
+    const [department, setDepartment] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const navigate = useNavigate();
+    // const dispatch = useDispatch();
 
     const [strength, setStrength] = React.useState(0);
     const [level, setLevel] = React.useState('');
@@ -109,11 +115,40 @@ const FirebaseRegister = ({ ...others }) => {
     useEffect(() => {
         changePassword('123456');
     }, []);
+    const addUser = () => {
+        // eslint-disable-next-line
+        const data = { username: username, userType: userType, department: department, email: email, password: password };
+
+        fetch('http://localhost:4000/user/create', {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                console.log('Success:', data);
+                if (data) {
+                    // localStorage.setItem('isLoggedIn', data.auth);
+                    // localStorage.setItem('authToken', data.token);
+
+                    // dispatch({ type: 'auth', authData: data });
+                    navigate('/login');
+                } else {
+                    alert('Invalid User name or password');
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    };
 
     return (
         <>
             <Grid container direction="column" justifyContent="center" spacing={2}>
-                <Grid item xs={12}>
+                {/* <Grid item xs={12}>
                     <AnimateButton>
                         <Button
                             disableElevation
@@ -127,7 +162,7 @@ const FirebaseRegister = ({ ...others }) => {
                             up with Google
                         </Button>
                     </AnimateButton>
-                </Grid>
+                </Grid> */}
                 <Grid item xs={12}>
                     <Box
                         sx={{
@@ -136,7 +171,7 @@ const FirebaseRegister = ({ ...others }) => {
                         }}
                     >
                         <Divider className={classes.signDivider} orientation="horizontal" />
-                        <AnimateButton>
+                        {/* <AnimateButton>
                             <Button
                                 variant="outlined"
                                 className={classes.signText}
@@ -146,7 +181,7 @@ const FirebaseRegister = ({ ...others }) => {
                             >
                                 OR
                             </Button>
-                        </AnimateButton>
+                        </AnimateButton> */}
                         <Divider className={classes.signDivider} orientation="horizontal" />
                     </Box>
                 </Grid>
@@ -163,7 +198,10 @@ const FirebaseRegister = ({ ...others }) => {
 
             <Formik
                 initialValues={{
-                    email: 'info@codedthemes.com',
+                    username: 'Ravindu Runage',
+                    department: 'Export',
+                    usertype: 'Admin',
+                    email: 'info@rathnacinnamon.com',
                     password: '123456',
                     submit: null
                 }}
@@ -188,40 +226,98 @@ const FirebaseRegister = ({ ...others }) => {
                 }}
             >
                 {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
-                    <form noValidate onSubmit={handleSubmit} {...others}>
-                        <Grid container spacing={matchDownSM ? 0 : 2}>
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    fullWidth
-                                    label="First Name"
-                                    margin="normal"
-                                    name="fname"
-                                    type="text"
-                                    defaultValue="Joseph"
-                                    className={classes.loginInput}
-                                />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    fullWidth
-                                    label="Last Name"
-                                    margin="normal"
-                                    name="lname"
-                                    type="text"
-                                    defaultValue="Doe"
-                                    className={classes.loginInput}
-                                />
-                            </Grid>
-                        </Grid>
+                    <form noValidate onSubmit={addUser} {...others}>
                         <FormControl fullWidth error={Boolean(touched.email && errors.email)} className={classes.loginInput}>
-                            <InputLabel htmlFor="outlined-adornment-email-register">Email Address / Username</InputLabel>
+                            <InputLabel htmlFor="outlined-adornment-email-register">Username</InputLabel>
+                            <OutlinedInput
+                                id="outlined-adornment-username-register"
+                                type="username"
+                                value={values.username}
+                                name="username"
+                                onBlur={handleBlur}
+                                // onChange={handleChange}
+                                onChange={(e) => {
+                                    handleChange(e);
+                                    setUsername(e.target.value);
+                                }}
+                                inputProps={{
+                                    classes: {
+                                        notchedOutline: classes.notchedOutline
+                                    }
+                                }}
+                            />
+                            {touched.email && errors.email && (
+                                <FormHelperText error id="standard-weight-helper-text--register">
+                                    {' '}
+                                    {errors.email}{' '}
+                                </FormHelperText>
+                            )}
+                        </FormControl>
+                        <FormControl fullWidth error={Boolean(touched.email && errors.email)} className={classes.loginInput}>
+                            <InputLabel htmlFor="outlined-adornment-email-register">User Type</InputLabel>
+                            <OutlinedInput
+                                id="outlined-adornment-username-register"
+                                type="usertype"
+                                value={values.usertype}
+                                name="usertype"
+                                onBlur={handleBlur}
+                                // onChange={handleChange}
+                                onChange={(e) => {
+                                    handleChange(e);
+                                    setUserType(e.target.value);
+                                }}
+                                inputProps={{
+                                    classes: {
+                                        notchedOutline: classes.notchedOutline
+                                    }
+                                }}
+                            />
+                            {touched.email && errors.email && (
+                                <FormHelperText error id="standard-weight-helper-text--register">
+                                    {' '}
+                                    {errors.email}{' '}
+                                </FormHelperText>
+                            )}
+                        </FormControl>
+                        <FormControl fullWidth error={Boolean(touched.email && errors.email)} className={classes.loginInput}>
+                            <InputLabel htmlFor="outlined-adornment-email-register">Department</InputLabel>
+                            <OutlinedInput
+                                id="outlined-adornment-email-register"
+                                type="department"
+                                value={values.department}
+                                name="department"
+                                onBlur={handleBlur}
+                                // onChange={handleChange}
+                                onChange={(e) => {
+                                    handleChange(e);
+                                    setDepartment(e.target.value);
+                                }}
+                                inputProps={{
+                                    classes: {
+                                        notchedOutline: classes.notchedOutline
+                                    }
+                                }}
+                            />
+                            {touched.email && errors.email && (
+                                <FormHelperText error id="standard-weight-helper-text--register">
+                                    {' '}
+                                    {errors.email}{' '}
+                                </FormHelperText>
+                            )}
+                        </FormControl>
+                        <FormControl fullWidth error={Boolean(touched.email && errors.email)} className={classes.loginInput}>
+                            <InputLabel htmlFor="outlined-adornment-email-register">Email Address</InputLabel>
                             <OutlinedInput
                                 id="outlined-adornment-email-register"
                                 type="email"
                                 value={values.email}
                                 name="email"
                                 onBlur={handleBlur}
-                                onChange={handleChange}
+                                // onChange={handleChange}
+                                onChange={(e) => {
+                                    handleChange(e);
+                                    setEmail(e.target.value);
+                                }}
                                 inputProps={{
                                     classes: {
                                         notchedOutline: classes.notchedOutline
@@ -247,7 +343,8 @@ const FirebaseRegister = ({ ...others }) => {
                                 onBlur={handleBlur}
                                 onChange={(e) => {
                                     handleChange(e);
-                                    changePassword(e.target.value);
+                                    // changePassword(e.target.value);
+                                    setPassword(e.target.value);
                                 }}
                                 endAdornment={
                                     <InputAdornment position="end">
@@ -303,7 +400,7 @@ const FirebaseRegister = ({ ...others }) => {
                             </FormControl>
                         )}
 
-                        <Grid container alignItems="center" justifyContent="space-between">
+                        {/* <Grid container alignItems="center" justifyContent="space-between">
                             <Grid item>
                                 <FormControlLabel
                                     control={
@@ -324,7 +421,7 @@ const FirebaseRegister = ({ ...others }) => {
                                     }
                                 />
                             </Grid>
-                        </Grid>
+                        </Grid> */}
                         {errors.submit && (
                             <Box
                                 sx={{
@@ -349,6 +446,7 @@ const FirebaseRegister = ({ ...others }) => {
                                     type="submit"
                                     variant="contained"
                                     color="secondary"
+                                    // onClick={addUser}
                                 >
                                     Sign up
                                 </Button>
